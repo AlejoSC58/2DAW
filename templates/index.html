@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Supermercado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Supermercado</h1>
+    <form action="{{ url_for('agregar') }}" method="post">
+        <label for="nombre">Nombre del producto:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        <label for="precio">Precio:</label>
+        <input type="number" id="precio" name="precio" step="0.01" required>
+        <button type="submit">Agregar al carrito</button>
+    </form>
+
+    <h2>Carrito de Compras</h2>
+    <ul>
+        {% if carrito.productos %}
+            {% for producto in carrito.productos %}
+                <li>
+                    <span>{{ producto.nombre }} - {{ producto.precio }}€</span>
+                    <div>
+                        <form action="{{ url_for('eliminar', indice=loop.index0) }}" method="post" style="display:inline;">
+                            <button type="submit">Eliminar</button>
+                        </form>
+                        <a href="{{ url_for('editar', indice=loop.index0) }}" class="button">Editar</a>
+                    </div>
+                </li>
+            {% endfor %}
+        {% else %}
+            <li>No hay productos en el carrito.</li>
+        {% endif %}
+    </ul>
+
+    <a href="{{ url_for('total') }}" class="button">Calcular Total</a>
+    <form action="{{ url_for('descuento', porcentaje=10) }}" method="get">
+        <button type="submit">Aplicar 10% de Descuento</button>
+    </form>
+</body>
+</html>
