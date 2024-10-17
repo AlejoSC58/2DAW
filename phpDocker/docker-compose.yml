@@ -1,0 +1,53 @@
+version: '3.8'  # Define la versión del archivo docker-compose. En este caso, es la versión 3.8.
+
+services:
+  db:
+    image: mysql:8.0  # Define la imagen de MySQL que se usará en este contenedor.
+    container_name: mysql_db  # Asigna un nombre al contenedor para facilitar su identificación.
+    environment:  # Variables de entorno que configuran la base de datos.
+      MYSQL_ROOT_PASSWORD: rootpassword  # Contraseña del usuario root de MySQL.
+      MYSQL_DATABASE: mi_base_de_datos  # Nombre de la base de datos que se creará al iniciar el contenedor.
+      MYSQL_USER: usuario  # Usuario de la base de datos.
+      MYSQL_PASSWORD: contrasena  # Contraseña para el usuario especificado.
+    ports:
+      - "3306:3306"  # Asigna el puerto 3306 del contenedor al puerto 3306 de la máquina host.
+    networks:
+      - my_network  # Define la red interna a la que pertenece este servicio, para comunicación con otros contenedores.
+    volumes:
+      - db_data:/var/lib/mysql  # Define un volumen para persistir los datos de la base de datos.
+
+  app:
+    build: ./app  # Define que el contenedor se construirá a partir del Dockerfile ubicado en la carpeta "app".
+    container_name: php_app  # Asigna un nombre al contenedor de la aplicación PHP.
+    depends_on:  # Especifica que el contenedor de la aplicación debe iniciarse después del contenedor de la base de datos.
+      - db
+    ports:
+      - "8080:80"  # El puerto 8080 del host se asigna al puerto 80 del contenedor para acceder a la aplicación desde el navegador.
+    networks:
+      - my_network  # Define que este contenedor estará en la misma red que la base de datos para que puedan comunicarse.
+    environment:  # Variables de entorno para que la aplicación PHP se conecte a la base de datos.
+      DB_HOST: db  # La dirección del servicio de la base de datos dentro de la red.
+      DB_USER: usuario  # Usuario de la base de datos que usará la aplicación.
+      DB_PASSWORD: contrasena  # Contraseña de la base de datos para el usuario especificado.
+      DB_NAME: mi_base_de_datos  # Nombre de la base de datos a la que se conectará la aplicación.
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin  # Define la imagen de phpMyAdmin que se usará para administrar MySQL gráficamente.
+    container_name: phpmyadmin  # Asigna un nombre al contenedor de phpMyAdmin.
+    environment:  # Variables de entorno para configurar phpMyAdmin.
+      PMA_HOST: db  # Define la dirección del servicio de la base de datos MySQL al que se conectará phpMyAdmin.
+      MYSQL_ROOT_PASSWORD: rootpassword  # Contraseña del usuario root de MySQL que usará phpMyAdmin para conectarse.
+    ports:
+      - "8081:80"  # El puerto 8081 del host se asigna al puerto 80 del contenedor, permitiendo acceso a phpMyAdmin desde el navegador.
+    depends_on:
+      - db  # phpMyAdmin depende de la base de datos MySQL, por lo que se debe iniciar después de que el contenedor de MySQL esté listo.
+    networks:
+      - my_network  # Define la red para que phpMyAdmin se comunique con la base de datos.
+
+networks:
+  my_network:
+    driver: bridge  # Usa el driver 'bridge' para la red, lo que permite la comunicación entre los contenedores dentro de esta red.
+
+volumes:
+  db_data:  # Volumen que almacenará los datos persistentes de la base de datos MySQL.
+
